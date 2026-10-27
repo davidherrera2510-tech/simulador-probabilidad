@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Simulador de Probabilidad</title>
+
+    <style>
+/* ===== ANIMACIONES DEL SIMULADOR ===== */
+
+.animacion {
+    display: none;
+    background: white;
+    padding: 30px 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.animacion h2 {
+    color: #1e40af;
+}
+
+.animacion p {
+    color: #64748b;
+}
+
+/* Moneda */
+
+.moneda {
+    width: 110px;
+    height: 110px;
+    margin: 25px auto;
+    border-radius: 50%;
+    border: 7px solid #b7791f;
+    background: radial-gradient(circle, #fde68a, #f59e0b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: #78350f;
+    box-shadow: 0 8px 0 #92400e;
+}
+
+.moneda.girando {
+    animation: girarMoneda 0.35s linear infinite;
+}
+
+@keyframes girarMoneda {
+    0% {
+        transform: rotateY(0deg) translateY(0);
+    }
+
+    25% {
+        transform: rotateY(90deg) translateY(-25px);
+    }
+
+    50% {
+        transform: rotateY(180deg) translateY(0);
+    }
+
+    75% {
+        transform: rotateY(270deg) translateY(-25px);
+    }
+
+    100% {
+        transform: rotateY(360deg) translateY(0);
+    }
+}
+
+/* Dado */
+
+.dado {
+    font-size: 100px;
+    margin: 20px auto;
+    display: inline-block;
+}
+
+.dado.lanzando {
+    animation: girarDado 0.5s ease-in-out infinite;
+}
+
+@keyframes girarDado {
+    0% {
+        transform: rotate(0deg) translateY(0);
+    }
+
+    25% {
+        transform: rotate(90deg) translateY(-25px);
+    }
+
+    50% {
+        transform: rotate(180deg) translateY(0);
+    }
+
+    75% {
+        transform: rotate(270deg) translateY(-25px);
+    }
+
+    100% {
+        transform: rotate(360deg) translateY(0);
+    }
+}
+
+/* Urna */
+
+.urna-visual {
+    width: 180px;
+    min-height: 180px;
+    margin: 25px auto;
+    padding: 20px;
+    border: 5px solid #64748b;
+    border-top: 12px solid #64748b;
+    border-radius: 15px 15px 40px 40px;
+    background: #e0f2fe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.bola-visual {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: inset -5px -5px 8px rgba(0, 0, 0, 0.2);
+}
+
+.roja {
+    background: #ef4444;
+}
+
+.azul {
+    background: #3b82f6;
+}
+
+.verde {
+    background: #22c55e;
+}
+
+.urna-visual.mezclando .bola-visual {
+    animation: mezclarBolas 0.4s ease-in-out infinite alternate;
+}
+
+.urna-visual.mezclando .bola-visual:nth-child(even) {
+    animation-delay: 0.2s;
+}
+
+@keyframes mezclarBolas {
+    from {
+        transform: translateY(-8px) rotate(0deg);
+    }
+
+    to {
+        transform: translateY(8px) rotate(25deg);
+    }
+}
+
+/* Resultado final de la animación */
+
+.resultado-animado {
+    font-size: 24px;
+    font-weight: bold;
+    color: #15803d;
+    margin-top: 20px;
+    animation: aparecerResultado 0.5s ease-out;
+}
+
+@keyframes aparecerResultado {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Respeto por la preferencia de movimiento reducido */
+
+@media (prefers-reduced-motion: reduce) {
+    .moneda.girando,
+    .dado.lanzando,
+    .urna-visual.mezclando .bola-visual {
+        animation-duration: 1.5s;
+    }
+}
+        /* Configuración general */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 30px 15px;
+        }
+
+        header h1 {
+            margin: 0 0 10px;
+            font-size: 30px;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Tarjetas */
+        .contenedor {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .tarjeta {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .tarjeta h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+
+        .icono {
+            font-size: 35px;
+        }
+
+        /* Formulario */
+        .formulario {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .formulario h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 8px;
+            font-weight: bold;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 13px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        /* Resultados */
+        .resultados {
+            display: none;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .resultados h2 {
+            color: #1e40af;
+        }
+
+        .resumen {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .dato {
+            background: #eff6ff;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .dato strong {
+            display: block;
+            font-size: 24px;
+            color: #1d4ed8;
+            margin-top: 8px;
+        }
+
+        /* Tabla */
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        /* Barras de probabilidad */
+        .barra {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progreso {
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.4s;
+        }
+
+        /* Lista de resultados */
+        .lista-resultados {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+            line-height: 1.8;
+        }
+
+        .error {
+            color: #dc2626;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+
+        /* Adaptación a celulares */
+        @media (max-width: 700px) {
+            .contenedor {
+                grid-template-columns: 1fr;
+            }
+
+            .resumen {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>🎲 Simulador de Probabilidad</h1>
+        <p>Experimenta, calcula y compara probabilidades</p>
+    </header>
+
+    <main>
+
+        <!-- Experimentos disponibles -->
+        <section class="contenedor">
+
+            <article class="tarjeta">
+                <div class="icono">🪙</div>
+                <h3>Lanzamiento de moneda</h3>
+                <p>Resultados posibles: cara y sello.</p>
+                <p><strong>Probabilidad:</strong> 50 % para cada resultado.</p>
+            </article>
+
+            <article class="tarjeta">
+                <div class="icono">🎲</div>
+                <h3>Lanzamiento de dado</h3>
+                <p>Resultados posibles: 1, 2, 3, 4, 5 y 6.</p>
+                <p><strong>Probabilidad:</strong> 16,67 % por resultado.</p>
+            </article>
+
+            <article class="tarjeta">
+                <div class="icono">🔴</div>
+                <h3>Extracción de una bola</h3>
+                <p>Urna con 3 bolas rojas, 2 azules y 1 verde.</p>
+                <p><strong>Probabilidades:</strong> roja 50 %, azul 33,33 % y verde 16,67 %.</p>
+            </article>
+
+        </section>
+
+        <!-- Formulario -->
+        <section class="formulario">
+
+            <h2>Configurar experimento</h2>
+
+            <label for="experimento">Selecciona un experimento:</label>
+
+            <select id="experimento">
+                <option value="moneda">Lanzamiento de moneda</option>
+                <option value="dado">Lanzamiento de dado</option>
+                <option value="urna">Extracción de una bola</option>
+            </select>
+
+            <label for="repeticiones">Número de repeticiones:</label>
+
+            <input
+                type="number"
+                id="repeticiones"
+                min="1"
+                max="100000"
+                value="100"
+                placeholder="Ejemplo: 100"
+            >
+
+            <button onclick="realizarExperimento()">
+                Ejecutar simulación
+            </button>
+
+            <p id="mensaje" class="error"></p>
+
+        </section>
+<!-- Animación del experimento -->
+
+<section class="animacion" id="panelAnimacion">
+
+    <h2 id="tituloAnimacion">Preparando experimento...</h2>
+
+    <p id="mensajeAnimacion">
+        Observa cómo se desarrolla el experimento.
+    </p>
+
+    <!-- Animación de la moneda -->
+    <div id="visualMoneda" style="display: none;">
+
+        <div class="moneda" id="monedaVisual">
+            ?
+        </div>
+
+    </div>
+
+    <!-- Animación del dado -->
+    <div id="visualDado" style="display: none;">
+
+        <div class="dado" id="dadoVisual">
+            🎲
+        </div>
+
+    </div>
+
+    <!-- Animación de la urna -->
+    <div id="visualUrna" style="display: none;">
+
+        <div class="urna-visual" id="urnaVisual">
+
+            <div class="bola-visual roja"></div>
+            <div class="bola-visual roja"></div>
+            <div class="bola-visual roja"></div>
+
+            <div class="bola-visual azul"></div>
+            <div class="bola-visual azul"></div>
+
+            <div class="bola-visual verde"></div>
+
+        </div>
+
+    </div>
+
+    <div
+        class="resultado-animado"
+        id="resultadoAnimado"
+        style="display: none;">
+    </div>
+
+</section>
+        <!-- Resultados -->
+        <section class="resultados" id="resultados">
+
+            <h2>📊 Resultados del experimento</h2>
+
+            <p id="nombreExperimento"></p>
+
+            <div class="resumen">
+
+                <div class="dato">
+                    Número de repeticiones
+                    <strong id="totalRepeticiones">0</strong>
+                </div>
+
+                <div class="dato">
+                    Resultados posibles
+                    <strong id="totalOpciones">0</strong>
+                </div>
+
+            </div>
+
+            <h3>Frecuencias y probabilidades</h3>
+
+            <div class="tabla-contenedor">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Resultado</th>
+                            <th>Frecuencia</th>
+                            <th>Probabilidad teórica</th>
+                            <th>Probabilidad experimental</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaResultados"></tbody>
+                </table>
+
+            </div>
+
+            <h3>Comparación visual</h3>
+
+            <div id="barras"></div>
+
+            <h3>Todos los resultados obtenidos</h3>
+
+            <div class="lista-resultados" id="listaResultados"></div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Simulador educativo de probabilidad</p>
+        <p>Las probabilidades experimentales pueden variar en cada simulación.</p>
+    </footer>
+
+    <script>
+
+        // Lanzar una moneda
+        function lanzarMoneda() {
+            return Math.random() < 0.5 ? "Cara" : "Sello";
+        }
+
+        // Lanzar un dado
+        function lanzarDado() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        // Sacar una bola de la urna
+        function sacarBola() {
+
+            const urna = [
+                "Roja", "Roja", "Roja",
+                "Azul", "Azul",
+                "Verde"
+            ];
+
+            const indice = Math.floor(Math.random() * urna.length);
+
+            return urna[indice];
+        }
+
+        // Configuración de los experimentos
+        const experimentos = {
+
+            moneda: {
+                nombre: "Lanzamiento de moneda",
+                opciones: ["Cara", "Sello"],
+                probabilidades: {
+                    "Cara": 1 / 2,
+                    "Sello": 1 / 2
+                },
+                funcion: lanzarMoneda
+            },
+
+            dado: {
+                nombre: "Lanzamiento de dado",
+                opciones: [1, 2, 3, 4, 5, 6],
+                probabilidades: {
+                    1: 1 / 6,
+                    2: 1 / 6,
+                    3: 1 / 6,
+                    4: 1 / 6,
+                    5: 1 / 6,
+                    6: 1 / 6
+                },
+                funcion: lanzarDado
+            },
+
+            urna: {
+                nombre: "Extracción de una bola",
+                opciones: ["Roja", "Azul", "Verde"],
+                probabilidades: {
+                    "Roja": 3 / 6,
+                    "Azul": 2 / 6,
+                    "Verde": 1 / 6
+                },
+                funcion: sacarBola
+            }
+
+        };
+
+        // Ejecutar la simulación y mostrar la animación correspondiente
+        async function realizarExperimento() {
+            const tipo = document.getElementById("experimento").value;
+            const repeticiones = Number(
+                document.getElementById("repeticiones").value
+            );
+            const mensaje = document.getElementById("mensaje");
+
+            mensaje.textContent = "";
+
+            if (
+                !Number.isInteger(repeticiones) ||
+                repeticiones < 1 ||
+                repeticiones > 100000
+            ) {
+                mensaje.textContent =
+                    "Ingresa un número entero entre 1 y 100000.";
+                return;
+            }
+
+            const experimento = experimentos[tipo];
+            const panelAnimacion = document.getElementById("panelAnimacion");
+            const visualMoneda = document.getElementById("visualMoneda");
+            const visualDado = document.getElementById("visualDado");
+            const visualUrna = document.getElementById("visualUrna");
+            const resultadoAnimado = document.getElementById("resultadoAnimado");
+            const tituloAnimacion = document.getElementById("tituloAnimacion");
+            const mensajeAnimacion = document.getElementById("mensajeAnimacion");
+            const monedaVisual = document.getElementById("monedaVisual");
+            const dadoVisual = document.getElementById("dadoVisual");
+            const urnaVisual = document.getElementById("urnaVisual");
+
+            // Preparar la animación y ocultar resultados anteriores
+            document.getElementById("resultados").style.display = "none";
+            panelAnimacion.style.display = "block";
+            visualMoneda.style.display = "none";
+            visualDado.style.display = "none";
+            visualUrna.style.display = "none";
+            resultadoAnimado.style.display = "none";
+            resultadoAnimado.textContent = "";
+
+            // Calcular los resultados de la simulación
+            const resultados = [];
+            for (let i = 0; i < repeticiones; i++) {
+                resultados.push(experimento.funcion());
+            }
+
+            // Usar una pausa para que se pueda ver la animación
+            const esperar = (milisegundos) =>
+                new Promise(resolve => setTimeout(resolve, milisegundos));
+
+            // Animar según el experimento seleccionado
+            if (tipo === "moneda") {
+                tituloAnimacion.textContent = "Lanzando la moneda...";
+                mensajeAnimacion.textContent = "La moneda está girando.";
+                visualMoneda.style.display = "block";
+                monedaVisual.textContent = "🪙";
+                monedaVisual.classList.add("girando");
+
+                await esperar(1800);
+
+                monedaVisual.classList.remove("girando");
+                monedaVisual.textContent = resultados[0] === "Cara" ? "C" : "S";
+            } else if (tipo === "dado") {
+                tituloAnimacion.textContent = "Lanzando el dado...";
+                mensajeAnimacion.textContent = "El dado está rodando.";
+                visualDado.style.display = "block";
+                dadoVisual.textContent = "🎲";
+                dadoVisual.classList.add("lanzando");
+
+                await esperar(1800);
+
+                dadoVisual.classList.remove("lanzando");
+                const carasDado = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+                dadoVisual.textContent = carasDado[Number(resultados[0]) - 1];
+            } else if (tipo === "urna") {
+                tituloAnimacion.textContent = "Mezclando las bolas...";
+                mensajeAnimacion.textContent = "Se está seleccionando una bola al azar.";
+                visualUrna.style.display = "block";
+                urnaVisual.classList.add("mezclando");
+
+                await esperar(1800);
+
+                urnaVisual.classList.remove("mezclando");
+            }
+
+            resultadoAnimado.textContent = "Resultado de muestra: " + resultados[0];
+            resultadoAnimado.style.display = "block";
+            tituloAnimacion.textContent = "¡Experimento realizado!";
+            mensajeAnimacion.textContent =
+                "La animación muestra el primer resultado; las estadísticas incluyen todas las repeticiones.";
+
+            // Mostrar información general
+            document.getElementById("nombreExperimento").textContent =
+                "Experimento: " + experimento.nombre;
+            document.getElementById("totalRepeticiones").textContent =
+                repeticiones.toLocaleString("es-CO");
+            document.getElementById("totalOpciones").textContent =
+                experimento.opciones.length;
+
+            // Preparar tabla y barras
+            const tabla = document.getElementById("tablaResultados");
+            const barras = document.getElementById("barras");
+            tabla.innerHTML = "";
+            barras.innerHTML = "";
+
+            // Calcular frecuencia y probabilidades
+            experimento.opciones.forEach(function(opcion) {
+                const frecuencia = resultados.filter(
+                    resultado => resultado === opcion
+                ).length;
+                const probExperimental = (frecuencia / repeticiones) * 100;
+                const probTeorica = experimento.probabilidades[opcion] * 100;
+
+                const fila = document.createElement("tr");
+                const celdaResultado = document.createElement("td");
+                celdaResultado.textContent = opcion;
+
+                const celdaFrecuencia = document.createElement("td");
+                celdaFrecuencia.textContent = frecuencia;
+
+                const celdaTeorica = document.createElement("td");
+                celdaTeorica.textContent = probTeorica.toFixed(2) + "%";
+
+                const celdaExperimental = document.createElement("td");
+                celdaExperimental.textContent =
+                    probExperimental.toFixed(2) + "%";
+
+                fila.append(
+                    celdaResultado,
+                    celdaFrecuencia,
+                    celdaTeorica,
+                    celdaExperimental
+                );
+                tabla.appendChild(fila);
+
+                const contenedorBarra = document.createElement("div");
+                const tituloBarra = document.createElement("p");
+                tituloBarra.textContent =
+                    opcion + ": " + probExperimental.toFixed(2) + "%";
+
+                const barra = document.createElement("div");
+                barra.className = "barra";
+
+                const progreso = document.createElement("div");
+                progreso.className = "progreso";
+                progreso.style.width = probExperimental + "%";
+
+                barra.appendChild(progreso);
+                contenedorBarra.append(tituloBarra, barra);
+                barras.appendChild(contenedorBarra);
+            });
+
+            // Mostrar los resultados individuales (máximo 1000 en pantalla)
+            const limite = 1000;
+            const lista = document.getElementById("listaResultados");
+
+            if (resultados.length <= limite) {
+                lista.textContent = resultados.join(", ");
+            } else {
+                lista.textContent =
+                    resultados.slice(0, limite).join(", ") +
+                    " ... (se muestran los primeros 1000 resultados de " +
+                    repeticiones.toLocaleString("es-CO") + ").";
+            }
+
+            document.getElementById("resultados").style.display = "block";
+            panelAnimacion.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }
+
+    </script>
+
+</body>
+</html>
